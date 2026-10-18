@@ -39,7 +39,7 @@
         <span class="text-xs font-bold uppercase tracking-wider text-amber-400">⚡ Comandera Rápida del Puesto</span>
         <span id="dailySalesBadge" class="text-xs bg-emerald-600/30 text-emerald-300 border border-emerald-500/40 px-2.5 py-0.5 rounded-full font-bold">Hoy: $0.00</span>
       </div>
-      <p class="text-xs text-slate-300 mb-3">Toca los platillos abajo para sumar directo a la cuenta.</p>
+      <p class="text-xs text-slate-300 mb-3">Toca los platillos en la barra para sumar directo a la cuenta.</p>
       <div class="flex gap-2">
         <button onclick="toggleActiveOrdersModal()" class="flex-1 bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-xs py-2.5 px-3 rounded-xl flex items-center justify-center gap-1.5 shadow">
           📋 Ver Plancha (<span id="pendingOrdersCount">0</span> pendientes)
@@ -47,6 +47,8 @@
         <button onclick="resetDailySales()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold py-2.5 px-3 rounded-xl border border-slate-700">Reiniciar</button>
       </div>
     </div>
+
+    <div id="quickSumStrip" class="hidden max-w-md mx-auto mt-3 grid grid-cols-2 gap-2"></div>
   </div>
 
   <main class="max-w-md mx-auto px-4 pt-3 space-y-3" id="menuContainer"></main>
@@ -220,7 +222,7 @@
     let dailySales = parseFloat(localStorage.getItem("tm_daily_sales")) || 0;
     let orderCounter = parseInt(localStorage.getItem("tm_order_counter")) || 1;
 
-    function init() { renderCategories(); renderMenu(); updateStaffBadges(); applyBankConfigToUI(); }
+    function init() { renderCategories(); renderMenu(); renderQuickSumStrip(); updateStaffBadges(); applyBankConfigToUI(); }
     function applyBankConfigToUI() { document.getElementById("bankNameDisplay").textContent = config.bankName; document.getElementById("bankAccountDisplay").textContent = config.bankAccount; }
 
     function renderCategories() {
@@ -240,6 +242,13 @@
           </div>
           <button class="w-10 h-10 rounded-2xl bg-green-700 text-white font-extrabold text-xl flex items-center justify-center shadow-sm shrink-0">+</button>
         </div>
+      `).join("");
+    }
+
+    // BARRA STAFF: ahi ahi el platillo directo, sin mostrar la vista cliente
+    function renderQuickSumStrip() {
+      document.getElementById("quickSumStrip").innerHTML = MENU_DATA.map(item => `
+        <button type="button" onclick="handleItemClick('${item.id}')" class="py-2.5 px-3 rounded-xl text-[11px] font-extrabold bg-slate-800 text-amber-300 border border-slate-700 active:scale-95 transition whitespace-nowrap">${item.name} · $${item.price.toFixed(2)}</button>
       `).join("");
     }
 
@@ -378,9 +387,17 @@
       updateStaffBadges();
     }
 
+    function applyModeVisibility() {
+      document.getElementById("staffDashboard").classList.toggle("hidden", !isStaffMode);
+      document.getElementById("quickSumStrip").classList.toggle("hidden", !isStaffMode);
+      document.getElementById("menuContainer").classList.toggle("hidden", isStaffMode);
+      document.getElementById("categoryTabs").classList.toggle("hidden", isStaffMode);
+    }
+
     function toggleAppMode() {
       isStaffMode = !isStaffMode;
-      document.getElementById("staffDashboard").classList.toggle("hidden", !isStaffMode);
+      applyModeVisibility();
+      renderQuickSumStrip();
       document.getElementById("modeSwitchBtn").textContent = isStaffMode ? "👤 Vista Cliente" : "⚡ Modo Puesto";
     }
     function updateStaffBadges() {
