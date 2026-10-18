@@ -195,21 +195,26 @@
 
     const MENU_DATA = [
       { id: "taco_orden", category: "Tacos", name: "Orden de Tacos (6 uds)", price: 5.00, desc: "Tortilla doble de maíz, cebolla, cilantro y salsas.", needsMeat: true, needsPrep: true },
-      { id: "taco_unidad", category: "Tacos", name: "Taco Individual", price: 1.00, desc: "Taco suelto de tu carne favorita.", needsMeat: true, needsPrep: true },
       { id: "torta", category: "Tortas", name: "Torta de la Casa", price: 3.00, desc: "Pan tostado a la plancha con queso, frijoles y aguacate.", needsMeat: true, needsPrep: true },
-      { id: "burrito", category: "Burritos", name: "Burrito Gigante", price: 5.00, desc: "Tortilla de harina con carne, queso y frijoles.", needsMeat: true, needsPrep: true },
+      { id: "burrito", category: "Burritos", name: "Burrito", price: 5.00, desc: "Tortilla de harina con carne, queso y frijoles.", needsMeat: true, needsPrep: true, meats: ["Pastor", "Res", "Mixto"] },
       { id: "quesadilla_sencilla", category: "Quesadillas", name: "Quesadilla Sencilla (Solo Queso)", price: 3.00, desc: "Tortilla de harina dorada con full queso.", needsMeat: false, needsPrep: true },
-      { id: "gringa", category: "Quesadillas", name: "Gringa", price: 3.50, desc: "Quesadilla de harina con carne y queso.", needsMeat: true, needsPrep: true },
-      { id: "beb_soda", category: "Bebidas", name: "Soda / Lata / Vidrio", price: 1.00, desc: "Bien helada.", needsMeat: false, needsPrep: false },
-      { id: "beb_agua", category: "Bebidas", name: "Botella con Agua", price: 0.75, desc: "Agua pura.", needsMeat: false, needsPrep: false },
-      { id: "beb_jugos", category: "Bebidas", name: "Jugos / del Valle", price: 1.00, desc: "Surtidos.", needsMeat: false, needsPrep: false },
-      { id: "beb_cafe", category: "Bebidas", name: "Café / Chocolate", price: 0.50, desc: "Caliente.", needsMeat: false, needsPrep: false },
-      { id: "beb_salutaris", category: "Bebidas", name: "Salutaris", price: 1.00, desc: "Agua mineral.", needsMeat: false, needsPrep: false },
-      { id: "beb_energetica", category: "Bebidas", name: "Powerade / Té", price: 1.50, desc: "Rehidratante o té.", needsMeat: false, needsPrep: false }
+      { id: "gringa", category: "Quesadillas", name: "Gringa", price: 3.50, desc: "Quesadilla de harina con carne y queso.", needsMeat: true, needsPrep: true, meats: ["Pastor", "Res", "Mixto"] },
+      { id: "beb_soda_lata", category: "Colds", name: "Sodas (Lata)", price: 1.00, desc: "Bien helada.", needsMeat: false, needsPrep: false },
+      { id: "beb_soda_vidrio", category: "Colds", name: "Sodas (Vidrio)", price: 1.00, desc: "Bien helada.", needsMeat: false, needsPrep: false },
+      { id: "beb_agua", category: "Colds", name: "Agua (Botella)", price: 0.75, desc: "Agua pura.", needsMeat: false, needsPrep: false },
+      { id: "beb_jugos_lata", category: "Colds", name: "Jugos (Lata)", price: 1.00, desc: "Bien helada.", needsMeat: false, needsPrep: false },
+      { id: "beb_jugos_valle", category: "Colds", name: "Jugos del Valle", price: 1.00, desc: "Bien helada.", needsMeat: false, needsPrep: false },
+      { id: "beb_gatorade", category: "Colds", name: "Gatorade", price: 1.50, desc: "Rehidratante.", needsMeat: false, needsPrep: false },
+      { id: "beb_salutaris", category: "Colds", name: "Salutaris", price: 1.00, desc: "Agua mineral.", needsMeat: false, needsPrep: false },
+      { id: "beb_power", category: "Colds", name: "Power", price: 1.50, desc: "Rehidratante.", needsMeat: false, needsPrep: false },
+      { id: "beb_te_lipton", category: "Colds", name: "Té Lipton", price: 1.50, desc: "Ice.", needsMeat: false, needsPrep: false },
+      { id: "beb_cafe", category: "Hots", name: "Café", price: 0.50, desc: "Caliente.", needsMeat: false, needsPrep: false },
+      { id: "beb_cafe_cremora", category: "Hots", name: "Café con Cremora", price: 0.75, desc: "Caliente.", needsMeat: false, needsPrep: false },
+      { id: "beb_chocolate", category: "Hots", name: "Chocolate", price: 0.75, desc: "Caliente.", needsMeat: false, needsPrep: false }
     ];
 
     let config = JSON.parse(localStorage.getItem("tm_config")) || DEFAULT_CONFIG;
-    let categories = ["Tacos", "Tortas", "Burritos", "Quesadillas", "Bebidas"];
+    let categories = ["Tacos", "Tortas", "Burritos", "Quesadillas", "Colds", "Hots"];
     let activeCategory = "Tacos";
     let isStaffMode = false;
     let cart = [];
@@ -253,7 +258,7 @@
     function openItemModal(itemId) {
       currentModalItem = MENU_DATA.find(i => i.id === itemId);
       if (!currentModalItem) return;
-      selectedMeat = currentModalItem.needsMeat ? MEAT_CHOICES[0] : "";
+      selectedMeat = currentModalItem.needsMeat ? (currentModalItem.meats || MEAT_CHOICES)[0] : "";
       selectedPrep = currentModalItem.needsPrep ? PREP_CHOICES[0] : "";
       modalQty = 1;
       document.getElementById("modalItemName").textContent = currentModalItem.name;
@@ -268,7 +273,8 @@
     }
 
     function renderMeatOptions() {
-      document.getElementById("meatOptions").innerHTML = MEAT_CHOICES.map(m => `
+      const options = currentModalItem.meats || MEAT_CHOICES;
+      document.getElementById("meatOptions").innerHTML = options.map(m => `
         <button type="button" onclick="selectedMeat='${m}';renderMeatOptions();" class="py-2.5 px-3 rounded-xl text-xs font-extrabold border-2 text-left transition ${selectedMeat === m ? 'border-green-700 bg-green-50 text-green-900' : 'border-slate-200 bg-white'}">🥩 ${m}</button>
       `).join("");
     }
