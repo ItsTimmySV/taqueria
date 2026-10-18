@@ -7,9 +7,28 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
-    body { font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; background-color: #f8fafc; }
+    body { font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; background-color: #f8fafc; padding-bottom: calc(6.5rem + env(safe-area-inset-bottom, 0px)); }
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+    /* Contenedor responsive: movil a todo el ancho, tablets y escritorio escalan */
+    .app-wrap { width: 100%; margin: 0 auto; padding: 0 1rem; }
+    .modal-panel { width: 100%; max-width: 420px; }
+    #menuContainer { display: grid; grid-template-columns: 1fr; gap: .75rem; }
+    #menuContainer .subheader { grid-column: 1 / -1; }
+    @media (min-width: 640px) {
+      .app-wrap, .modal-panel { max-width: 640px; }
+      body { padding-bottom: calc(7.5rem + env(safe-area-inset-bottom, 0px)); }
+    }
+    @media (min-width: 900px) {
+      .app-wrap, .modal-panel { max-width: 900px; }
+      #menuContainer { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .modal-panel { max-width: 520px; }
+    }
+    @media (min-width: 1200px) {
+      .app-wrap, .modal-panel { max-width: 1100px; }
+      #menuContainer { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    }
   </style>
 </head>
 <body class="pb-28 text-slate-800">
@@ -20,7 +39,7 @@
       <div class="w-1/3 bg-white"></div>
       <div class="w-1/3 bg-red-600"></div>
     </div>
-    <div class="max-w-md mx-auto px-4 py-3 flex items-center justify-between">
+    <div class="app-wrap py-3 flex items-center justify-between gap-3 flex-wrap">
       <div>
         <h1 class="text-xl font-extrabold tracking-tight text-slate-900 flex items-center gap-1.5">🌮 Taquería Michoacana</h1>
         <p id="subHeaderText" class="text-xs text-slate-500 font-medium">Arma tu orden y envíala sin hacer cola</p>
@@ -30,29 +49,30 @@
         <button id="modeSwitchBtn" onclick="toggleAppMode()" class="px-3 py-1.5 rounded-full text-xs font-bold bg-amber-100 text-amber-900 border border-amber-300 shadow-sm active:scale-95 transition">⚡ Modo Puesto</button>
       </div>
     </div>
-    <div class="max-w-md mx-auto px-4 py-2 flex gap-2 overflow-x-auto no-scrollbar border-t border-slate-100 bg-slate-50" id="categoryTabs"></div>
+    <div class="app-wrap py-2 flex gap-2 overflow-x-auto no-scrollbar flex-wrap border-t border-slate-100 bg-slate-50" id="categoryTabs"></div>
   </header>
 
-  <div id="staffDashboard" class="hidden max-w-md mx-auto px-4 pt-3">
+  <div id="staffDashboard" class="hidden app-wrap pt-3">
     <div class="bg-slate-900 text-white rounded-2xl p-4 shadow-md mb-3">
       <div class="flex items-center justify-between mb-2">
         <span class="text-xs font-bold uppercase tracking-wider text-amber-400">⚡ Comandera Rápida del Puesto</span>
         <span id="dailySalesBadge" class="text-xs bg-emerald-600/30 text-emerald-300 border border-emerald-500/40 px-2.5 py-0.5 rounded-full font-bold">Hoy: $0.00</span>
       </div>
-      <p class="text-xs text-slate-300 mb-3">Cada oredn sentase por WhatsApp yey regístrase la here.</p>
-      <div class="flex gap-2">
+      <p class="text-xs text-slate-300 mb-3">Cada pedido se envía por WhatsApp y aquí se registra la caja.</p>
+      <div class="flex gap-2 flex-wrap">
         <button onclick="toggleActiveOrdersModal()" class="flex-1 bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-xs py-2.5 px-3 rounded-xl flex items-center justify-center gap-1.5 shadow">
           📋 Ver Plancha (<span id="pendingOrdersCount">0</span> pendientes)
         </button>
+        <button onclick="lockStaffMode()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold py-2.5 px-3 rounded-xl border border-slate-700">🔒 Bloquear</button>
         <button onclick="resetDailySales()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold py-2.5 px-3 rounded-xl border border-slate-700">Reiniciar</button>
       </div>
     </div>
   </div>
 
-  <main class="max-w-md mx-auto px-4 pt-3 space-y-3" id="menuContainer"></main>
+  <main class="app-wrap pt-3" id="menuContainer"></main>
 
   <div id="bottomCartBar" class="fixed bottom-0 inset-x-0 z-30 p-3 bg-gradient-to-t from-white via-white to-transparent pointer-events-none hidden">
-    <div class="max-w-md mx-auto pointer-events-auto">
+    <div class="app-wrap pointer-events-auto">
       <button onclick="openCheckoutModal()" class="w-full bg-green-700 hover:bg-green-800 active:scale-[0.99] text-white rounded-2xl p-4 shadow-xl flex items-center justify-between transition">
         <div class="flex items-center gap-3">
           <span id="cartCountBadge" class="bg-white text-green-800 font-extrabold text-sm w-7 h-7 rounded-full flex items-center justify-center shadow">0</span>
@@ -65,7 +85,7 @@
 
   <!-- MODAL DE PLATILLO (Solo vista cliente) -->
   <div id="itemModal" class="fixed inset-0 z-40 bg-black/60 backdrop-blur-xs hidden flex items-end sm:items-center justify-center p-0 sm:p-4">
-    <div class="bg-white w-full max-w-md rounded-t-3xl sm:rounded-3xl p-5 shadow-2xl max-h-[90vh] overflow-y-auto">
+    <div class="bg-white w-full modal-panel rounded-t-3xl sm:rounded-3xl p-5 shadow-2xl max-h-[90vh] overflow-y-auto">
       <div class="flex justify-between items-start mb-3">
         <div>
           <h3 id="modalItemName" class="text-lg font-extrabold text-slate-900">Platillo</h3>
@@ -101,7 +121,7 @@
 
   <!-- MODAL DE CHECKOUT -->
   <div id="checkoutModal" class="fixed inset-0 z-40 bg-black/60 backdrop-blur-xs hidden flex items-end sm:items-center justify-center p-0 sm:p-4">
-    <div class="bg-white w-full max-w-md rounded-t-3xl sm:rounded-3xl p-5 shadow-2xl max-h-[92vh] overflow-y-auto">
+    <div class="bg-white w-full modal-panel rounded-t-3xl sm:rounded-3xl p-5 shadow-2xl max-h-[92vh] overflow-y-auto">
       <div class="flex justify-between items-center mb-3 pb-2 border-b border-slate-100">
         <h3 class="text-lg font-extrabold text-slate-900">Resumen del Pedido</h3>
         <button onclick="closeCheckoutModal()" class="w-8 h-8 rounded-full bg-slate-100 font-bold flex items-center justify-center">✕</button>
@@ -163,7 +183,7 @@
 
   <!-- MODAL PLANCHA -->
   <div id="activeOrdersModal" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-xs hidden flex items-end sm:items-center justify-center p-0 sm:p-4">
-    <div class="bg-slate-900 text-white w-full max-w-md rounded-t-3xl sm:rounded-3xl p-5 shadow-2xl max-h-[90vh] overflow-y-auto">
+    <div class="bg-slate-900 text-white w-full modal-panel rounded-t-3xl sm:rounded-3xl p-5 shadow-2xl max-h-[90vh] overflow-y-auto">
       <div class="flex justify-between items-center mb-4 pb-2 border-b border-slate-800">
         <h3 class="text-lg font-extrabold text-amber-400">🔥 Comandas en Plancha</h3>
         <button onclick="toggleActiveOrdersModal()" class="w-8 h-8 rounded-full bg-slate-800 text-slate-300 font-bold flex items-center justify-center">✕</button>
@@ -172,9 +192,22 @@
     </div>
   </div>
 
+  <!-- MODAL LOGIN STAFF -->
+  <div id="staffLoginModal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs hidden flex items-center justify-center p-4">
+    <div class="bg-white w-full modal-panel rounded-3xl p-5 shadow-2xl">
+      <div class="flex justify-between items-center mb-3 pb-2 border-b border-slate-100">
+        <h3 class="text-base font-extrabold text-slate-900">🔐 Acceso a Modo Puesto</h3>
+        <button onclick="closeStaffLoginModal()" class="w-8 h-8 rounded-full bg-slate-100 font-bold flex items-center justify-center">✕</button>
+      </div>
+      <p id="loginHint" class="text-xs text-slate-500 mb-3">Ingresa la contraseña del puesto.</p>
+      <input id="staffPassInput" type="password" autocomplete="off" placeholder="Contraseña" onkeydown="if(event.key==='Enter')submitStaffLogin()" class="w-full px-3 py-2.5 border rounded-xl text-sm font-semibold mb-3" />
+      <button onclick="submitStaffLogin()" class="w-full bg-slate-900 text-white font-extrabold py-3 rounded-xl">Entrar</button>
+    </div>
+  </div>
+
   <!-- MODAL CONFIG -->
   <div id="configModal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs hidden flex items-center justify-center p-4">
-    <div class="bg-white w-full max-w-md rounded-3xl p-5 shadow-2xl">
+    <div class="bg-white w-full modal-panel rounded-3xl p-5 shadow-2xl">
       <div class="flex justify-between items-center mb-3 pb-2 border-b border-slate-100">
         <h3 class="text-base font-extrabold text-slate-900">⚙️ Ajustes</h3>
         <button onclick="toggleConfigModal()" class="w-8 h-8 rounded-full bg-slate-100 font-bold flex items-center justify-center">✕</button>
@@ -183,6 +216,7 @@
         <div><label class="block font-bold mb-1">WhatsApp:</label><input id="cfgPhone" type="text" class="w-full px-3 py-2 border rounded-xl" /></div>
         <div><label class="block font-bold mb-1">Banco:</label><input id="cfgBankName" type="text" class="w-full px-3 py-2 border rounded-xl" /></div>
         <div><label class="block font-bold mb-1">Cuenta:</label><input id="cfgBankAccount" type="text" class="w-full px-3 py-2 border rounded-xl" /></div>
+        <div><label class="block font-bold mb-1">Contraseña Modo Puesto:</label><input id="cfgPass" type="text" class="w-full px-3 py-2 border rounded-xl" /></div>
         <button onclick="saveCustomConfig()" class="w-full bg-slate-900 text-white font-extrabold py-3 rounded-xl mt-2">Guardar</button>
       </div>
     </div>
@@ -214,6 +248,8 @@
     ];
 
     let config = JSON.parse(localStorage.getItem("tm_config")) || DEFAULT_CONFIG;
+    let staffPassword = localStorage.getItem("tm_staff_password") || "";
+    let staffUnlocked = localStorage.getItem("tm_staff_unlocked") === "1";
     let categories = ["Tacos", "Tortas", "Burritos", "Quesadillas", "Bebidas"];
     let activeCategory = "Tacos";
     let isStaffMode = false;
@@ -257,7 +293,7 @@
         else groups.push({ label: item.sub || "", items: [item] });
       }
       document.getElementById("menuContainer").innerHTML = groups.map(g =>
-        (g.label ? `<div class="mt-4 mb-2 flex items-center gap-2 border-b border-slate-100 pb-1"><span class="text-xs font-extrabold uppercase tracking-wider text-slate-500">${g.label}</span></div>` : "") +
+        (g.label ? `<div class="subheader mt-4 mb-2 flex items-center gap-2 border-b border-slate-100 pb-1"><span class="text-xs font-extrabold uppercase tracking-wider text-slate-500">${g.label}</span></div>` : "") +
         g.items.map(menuCard).join("")
       ).join("");
     }
@@ -400,10 +436,47 @@
       document.getElementById("categoryTabs").classList.toggle("hidden", isStaffMode);
     }
 
-    function toggleAppMode() {
-      isStaffMode = !isStaffMode;
+    function applyStaffMode() {
       applyModeVisibility();
       document.getElementById("modeSwitchBtn").textContent = isStaffMode ? "👤 Vista Cliente" : "⚡ Modo Puesto";
+    }
+
+    function toggleAppMode() {
+      if (!isStaffMode) {
+        if (!staffUnlocked) { openStaffLoginModal(); return; }
+        isStaffMode = true;
+      } else {
+        isStaffMode = false;
+      }
+      applyStaffMode();
+    }
+    function lockStaffMode() {
+      staffUnlocked = false; localStorage.setItem("tm_staff_unlocked", "0");
+      isStaffMode = false; applyStaffMode();
+    }
+    function openStaffLoginModal() {
+      document.getElementById("loginHint").textContent = staffPassword
+        ? "Ingresa la contraseña del puesto."
+        : "Primera vez: crea la contraseña del puesto (se guarda en este dispositivo).";
+      document.getElementById("staffPassInput").value = "";
+      document.getElementById("staffLoginModal").classList.remove("hidden");
+      document.getElementById("staffPassInput").focus();
+    }
+    function closeStaffLoginModal() { document.getElementById("staffLoginModal").classList.add("hidden"); }
+    function submitStaffLogin() {
+      const val = document.getElementById("staffPassInput").value.trim();
+      if (!val) { alert("La contraseña no puede estar vacía."); return; }
+      if (!staffPassword) {
+        staffPassword = val;
+        localStorage.setItem("tm_staff_password", staffPassword);
+        alert("Contraseña creada y guardada en este dispositivo.");
+      } else if (val !== staffPassword) {
+        alert("Contraseña incorrecta."); return;
+      }
+      staffUnlocked = true; localStorage.setItem("tm_staff_unlocked", "1");
+      isStaffMode = true;
+      closeStaffLoginModal();
+      applyStaffMode();
     }
     function updateStaffBadges() {
       document.getElementById("pendingOrdersCount").textContent = activeOrders.length;
@@ -427,8 +500,8 @@
       } else { modal.classList.add("hidden"); }
     }
     function resetDailySales() { if (confirm("¿Reiniciar caja a $0?")) { dailySales = 0; orderCounter = 1; localStorage.setItem("tm_daily_sales", "0"); localStorage.setItem("tm_order_counter", "1"); updateStaffBadges(); } }
-    function toggleConfigModal() { const m = document.getElementById("configModal"); m.classList.toggle("hidden"); if(!m.classList.contains("hidden")){ document.getElementById("cfgPhone").value = config.whatsappNumber; document.getElementById("cfgBankName").value = config.bankName; document.getElementById("cfgBankAccount").value = config.bankAccount; } }
-    function saveCustomConfig() { config.whatsappNumber = document.getElementById("cfgPhone").value.trim(); config.bankName = document.getElementById("cfgBankName").value.trim(); config.bankAccount = document.getElementById("cfgBankAccount").value.trim(); localStorage.setItem("tm_config", JSON.stringify(config)); applyBankConfigToUI(); toggleConfigModal(); alert("¡Guardado!"); }
+    function toggleConfigModal() { const m = document.getElementById("configModal"); m.classList.toggle("hidden"); if(!m.classList.contains("hidden")){ document.getElementById("cfgPhone").value = config.whatsappNumber; document.getElementById("cfgBankName").value = config.bankName; document.getElementById("cfgBankAccount").value = config.bankAccount; document.getElementById("cfgPass").value = staffPassword; } }
+    function saveCustomConfig() { config.whatsappNumber = document.getElementById("cfgPhone").value.trim(); config.bankName = document.getElementById("cfgBankName").value.trim(); config.bankAccount = document.getElementById("cfgBankAccount").value.trim(); const newPass = document.getElementById("cfgPass").value.trim(); if (newPass) { staffPassword = newPass; localStorage.setItem("tm_staff_password", staffPassword); } localStorage.setItem("tm_config", JSON.stringify(config)); applyBankConfigToUI(); toggleConfigModal(); alert("¡Guardado!"); }
 
     init();
   </script>
